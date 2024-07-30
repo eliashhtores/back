@@ -1,16 +1,18 @@
 import express from "express"
 import dotenv from "dotenv"
-import { getUsers, getUser, createUser } from "./database/db.js"
+import bodyParser from "body-parser"
+import userRoutes from "./routes/user.js"
+import courseRoutes from "./routes/course.js"
 
 dotenv.config()
 
 const app = express()
 
 app.use(express.json())
+app.use(bodyParser.json())
 
-app.get("/users", async (req, res) => {
-    res.status(200).send(await getUsers())
-})
+app.use("/user", userRoutes)
+app.use("/course", courseRoutes)
 
 app.use((err, req, res, next) => {
     console.error(err.stack)
@@ -18,5 +20,5 @@ app.use((err, req, res, next) => {
 })
 
 app.listen(process.env.PORT || 3001, () => {
-    console.log(`Server running on port ${process.env.PORT}...`)
+    console.log(`Server running on port ${process.env.PORT}!`)
 })
