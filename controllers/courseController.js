@@ -42,13 +42,13 @@ const createCourse = async (req, res) => {
         length,
         price,
         language,
-        available_at,
+        availableAt,
         mark,
         presenter,
-        presented_by,
+        presentedBy,
         attendance,
         sessions,
-        created_by,
+        createdBy,
     } = req.body
     try {
         const [row] = await pool.query(
@@ -69,19 +69,7 @@ const createCourse = async (req, res) => {
             INSERT INTO course (name, length, price, language, available_at, mark, presenter, presented_by, attendance, sessions, created_by)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
-            [
-                name,
-                length,
-                price,
-                language,
-                available_at,
-                mark,
-                presenter,
-                presented_by,
-                attendance,
-                sessions,
-                created_by,
-            ]
+            [name, length, price, language, availableAt, mark, presenter, presentedBy, attendance, sessions, createdBy]
         )
         res.status(201).send(result)
     } catch (error) {
@@ -97,13 +85,13 @@ const updateCourse = async (req, res) => {
         length,
         price,
         language,
-        available_at,
+        availableAt,
         mark,
         presenter,
-        presented_by,
+        presentedBy,
         attendance,
         sessions,
-        updated_by,
+        updatedBy,
     } = req.body
     try {
         const [result] = await pool.query(
@@ -117,13 +105,13 @@ const updateCourse = async (req, res) => {
                 length,
                 price,
                 language,
-                available_at,
+                availableAt,
                 mark,
                 presenter,
-                presented_by,
+                presentedBy,
                 attendance,
                 sessions,
-                updated_by,
+                updatedBy,
                 id,
             ]
         )
@@ -138,9 +126,33 @@ const updateCourse = async (req, res) => {
     }
 }
 
+const updateCourseStatus = async (req, res) => {
+    const { id } = req.params
+    const { updatedBy } = req.body
+    try {
+        const [result] = await pool.query(
+            `
+        UPDATE course
+        SET Active = !Active, updated_by = ?
+        WHERE id = ?
+    `,
+            [updatedBy, id]
+        )
+        if (result.affectedRows) {
+            res.status(200).send({ message: "Course status updated successfully" })
+            return
+        }
+        res.status(404).send({ error: "Course not found" })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+        console.error(error.stack)
+    }
+}
+
 export default {
     getCourses,
     getCourse,
     createCourse,
     updateCourse,
+    updateCourseStatus,
 }

@@ -7,5 +7,6 @@ router.get("/course/:id", sessionController.getSessionsByCourse)
 router.get("/:id", sessionController.getSession)
 router.post("/", sessionController.createSession)
 router.patch("/:id", sessionController.updateSession)
+router.patch("/status/:id", sessionController.updateSessionStatus)
 
 export default router

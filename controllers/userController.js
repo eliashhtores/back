@@ -59,7 +59,7 @@ const validateUser = async (req, res) => {
 }
 
 const createUser = async (req, res) => {
-    const { firstName, lastName, username, password, created_by } = req.body
+    const { firstName, lastName, username, password, createdBy } = req.body
     try {
         const [row] = await pool.query(
             `
@@ -78,7 +78,7 @@ const createUser = async (req, res) => {
         INSERT INTO user (first_name, last_name, username, password, created_by)
         VALUES (?, ?, ?, MD5(?), ?)
         `,
-            [firstName, lastName, username, password, created_by]
+            [firstName, lastName, username, password, createdBy]
         )
         res.status(201).send(result)
     } catch (error) {
@@ -89,7 +89,7 @@ const createUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
     const { id } = req.params
-    const { firstName, lastName, username, password, updated_by } = req.body
+    const { firstName, lastName, username, password, updatedBy } = req.body
     try {
         const [result] = await pool.query(
             `
@@ -97,10 +97,33 @@ const updateUser = async (req, res) => {
         SET first_name = ?, last_name = ?, username = ?, password = MD5(?), updated_by = ?
         WHERE id = ?
     `,
-            [firstName, lastName, username, password, updated_by, id]
+            [firstName, lastName, username, password, updatedBy, id]
         )
         if (result.affectedRows) {
             res.status(200).send({ message: "User updated successfully" })
+            return
+        }
+        res.status(404).send({ error: "User not found" })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+        console.error(error.stack)
+    }
+}
+
+const updateUserStatus = async (req, res) => {
+    const { id } = req.params
+    const { updatedBy } = req.body
+    try {
+        const [result] = await pool.query(
+            `
+        UPDATE user
+        SET Active = !Active, updated_by = ?
+        WHERE id = ?
+    `,
+            [updatedBy, id]
+        )
+        if (result.affectedRows) {
+            res.status(200).send({ message: "User status updated successfully" })
             return
         }
         res.status(404).send({ error: "User not found" })
@@ -116,4 +139,5 @@ export default {
     createUser,
     updateUser,
     validateUser,
+    updateUserStatus,
 }

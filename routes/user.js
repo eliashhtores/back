@@ -8,5 +8,6 @@ router.get("/:id", userController.getUser)
 router.post("/validate", userController.validateUser)
 router.post("/", userController.createUser)
 router.patch("/:id", userController.updateUser)
+router.patch("/status/:id", userController.updateUserStatus)
 
 export default router

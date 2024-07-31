@@ -1,35 +1,26 @@
 import pool from "../database/db.js"
 
-const getSessionsByCourse = async (req, res) => {
-    const { id } = req.params
+const getRegistrations = async (req, res) => {
     try {
-        const [rows] = await pool.query(
-            `
-        SELECT * FROM course_session cs
-        JOIN course c ON c.id = cs.course_id
-        WHERE course_id = ?
-            AND cs.active
-        `,
-            [id]
-        )
+        const [rows] = await pool.query("SELECT * FROM registration")
         if (rows.length) {
             res.status(200).send(rows)
             return
         }
-        res.status(404).send({ error: "No sessions found" })
+        res.status(404).send({ error: "No registrations found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
-        console.error(error.stack)
+        console.error(error.message)
     }
 }
 
-const getSession = async (req, res) => {
+const getRegistration = async (req, res) => {
     const { id } = req.params
     try {
         const [row] = await pool.query(
             `
         SELECT * 
-        FROM course_session 
+        FROM registration 
         WHERE id = ?
         `,
             [id]
@@ -38,37 +29,35 @@ const getSession = async (req, res) => {
             res.status(200).send(row[0])
             return
         }
-        res.status(404).send({ error: "Session not found" })
+        res.status(404).send({ error: "Registration not found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.stack)
     }
 }
 
-const createSession = async (req, res) => {
-    const { courseID, number, url, createdBy } = req.body
+const createRegistration = async (req, res) => {
+    const { userID, courseID, createdBy } = req.body
     try {
         const [row] = await pool.query(
             `
             SELECT *
-            FROM course_session cs
-            JOIN course c ON c.id = cs.course_id
-            WHERE course_id = ?
-                AND number = ?
-                AND cs.active
+            FROM registration
+            WHERE user_id = ?
+                AND course_id = ?
         `,
-            [courseID, number]
+            [userID, courseID]
         )
         if (row[0]) {
-            res.status(409).send({ error: "Session number for this course already exists" })
+            res.status(409).send({ error: "User already enrolled in this course" })
             return
         }
         const [result] = await pool.query(
             `
-        INSERT INTO course_session (course_id, number, url, created_by)
-        VALUES (?, ?, ?, ?)
+            INSERT INTO registration (user_id, course_id, created_by) 
+            VALUES (?, ?, ?)
         `,
-            [courseID, number, url, createdBy]
+            [userID, courseID, createdBy]
         )
         res.status(201).send(result)
     } catch (error) {
@@ -77,46 +66,46 @@ const createSession = async (req, res) => {
     }
 }
 
-const updateSession = async (req, res) => {
+const updateRegistration = async (req, res) => {
     const { id } = req.params
-    const { url, updatedBy } = req.body
+    const { timeSpent, updatedBy } = req.body
     try {
         const [result] = await pool.query(
             `
-        UPDATE course_session
-        SET url = ?, updated_by = ?
+        UPDATE registration
+        SET time_spent = ?, updated_by = ?
         WHERE id = ?
     `,
-            [url, updatedBy, id]
+            [timeSpent, updatedBy, id]
         )
         if (result.affectedRows) {
-            res.status(200).send({ message: "Session updated successfully" })
+            res.status(200).send({ message: "Registration updated successfully" })
             return
         }
-        res.status(404).send({ error: "Session not found" })
+        res.status(404).send({ error: "Registration not found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.stack)
     }
 }
 
-const updateSessionStatus = async (req, res) => {
+const updateRegistrationStatus = async (req, res) => {
     const { id } = req.params
     const { updatedBy } = req.body
     try {
         const [result] = await pool.query(
             `
-        UPDATE course_session
+        UPDATE registration
         SET Active = !Active, updated_by = ?
         WHERE id = ?
     `,
             [updatedBy, id]
         )
         if (result.affectedRows) {
-            res.status(200).send({ message: "Session status updated successfully" })
+            res.status(200).send({ message: "Registration status updated successfully" })
             return
         }
-        res.status(404).send({ error: "Session not found" })
+        res.status(404).send({ error: "Registration not found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.stack)
@@ -124,9 +113,9 @@ const updateSessionStatus = async (req, res) => {
 }
 
 export default {
-    getSessionsByCourse,
-    getSession,
-    createSession,
-    updateSession,
-    updateSessionStatus,
+    getRegistrations,
+    getRegistration,
+    createRegistration,
+    updateRegistration,
+    updateRegistrationStatus,
 }
