@@ -3,10 +3,14 @@ import pool from "../database/db.js"
 const getCourses = async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT * FROM course")
-        res.status(200).send(rows)
+        if (rows.length) {
+            res.status(200).send(rows)
+            return
+        }
+        res.status(404).send({ error: "No courses found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
-        console.error(error.message)
+        console.error(error.stack)
     }
 }
 
@@ -28,7 +32,7 @@ const getCourse = async (req, res) => {
         res.status(404).send({ error: "Course not found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
-        console.error(error.message)
+        console.error(error.stack)
     }
 }
 
@@ -82,7 +86,7 @@ const createCourse = async (req, res) => {
         res.status(201).send(result)
     } catch (error) {
         res.status(500).json({ message: error.message })
-        console.error(error.message)
+        console.error(error.stack)
     }
 }
 
@@ -130,7 +134,7 @@ const updateCourse = async (req, res) => {
         res.status(404).send({ error: "Course not found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
-        console.error(error.message)
+        console.error(error.stack)
     }
 }
 

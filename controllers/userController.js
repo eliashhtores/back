@@ -3,7 +3,11 @@ import pool from "../database/db.js"
 const getUsers = async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT * FROM user")
-        res.status(200).send(rows)
+        if (rows.length) {
+            res.status(200).send(rows)
+            return
+        }
+        res.status(404).send({ error: "No users found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.message)
@@ -28,7 +32,7 @@ const getUser = async (req, res) => {
         res.status(404).send({ error: "User not found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
-        console.error(error.message)
+        console.error(error.stack)
     }
 }
 
@@ -50,7 +54,7 @@ const validateUser = async (req, res) => {
         res.status(404).send({ error: "Invalid username or password" })
     } catch (error) {
         res.status(500).json({ message: error.message })
-        console.error(error.message)
+        console.error(error.stack)
     }
 }
 
@@ -79,7 +83,7 @@ const createUser = async (req, res) => {
         res.status(201).send(result)
     } catch (error) {
         res.status(500).json({ message: error.message })
-        console.error(error.message)
+        console.error(error.stack)
     }
 }
 
@@ -102,7 +106,7 @@ const updateUser = async (req, res) => {
         res.status(404).send({ error: "User not found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
-        console.error(error.message)
+        console.error(error.stack)
     }
 }
 
