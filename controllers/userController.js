@@ -2,7 +2,16 @@ import pool from "../database/db.js"
 
 const getUsers = async (req, res) => {
     try {
-        const [rows] = await pool.query("SELECT * FROM user WHERE username != 'admin' ORDER BY first_name ASC")
+        const [rows] = await pool.query(
+            `
+            SELECT u.*, COUNT(r.user_id) AS registration_count
+            FROM user u
+            LEFT JOIN registration r ON r.user_id = u.id
+            WHERE u.username != 'admin'
+            GROUP BY u.id
+            ORDER BY u.first_name ASC
+        `
+        )
         const response = {
             data: rows,
             recordsTotal: rows.length,
@@ -20,9 +29,9 @@ const getUser = async (req, res) => {
     try {
         const [row] = await pool.query(
             `
-        SELECT *
-        FROM user
-        WHERE id = ?
+            SELECT *
+            FROM user
+            WHERE id = ?
         `,
             [id]
         )
@@ -42,9 +51,9 @@ const validateUser = async (req, res) => {
     try {
         const [row] = await pool.query(
             `
-        SELECT id, username
-        FROM user
-        WHERE username = ? AND password = MD5(?)
+            SELECT id, username
+            FROM user
+            WHERE username = ? AND password = MD5(?)
         `,
             [username, password]
         )
@@ -71,13 +80,13 @@ const createUser = async (req, res) => {
             [username]
         )
         if (row[0]) {
-            res.status(409).send({ error: "Username already exists" })
+            res.status(409).send({ status: 409, error: "Username already exists" })
             return
         }
         const [result] = await pool.query(
             `
-        INSERT INTO user (first_name, last_name, username, password, created_by)
-        VALUES (?, ?, ?, MD5(?), ?)
+            INSERT INTO user (first_name, last_name, username, password, created_by)
+            VALUES (?, ?, ?, MD5(?), ?)
         `,
             [firstName, lastName, username, password, createdBy]
         )
@@ -94,10 +103,10 @@ const updateUser = async (req, res) => {
     try {
         const [result] = await pool.query(
             `
-        UPDATE user
-        SET first_name = ?, last_name = ?, username = ?, password = MD5(?), updated_by = ? 
-        WHERE id = ?
-    `,
+            UPDATE user
+            SET first_name = ?, last_name = ?, username = ?, password = MD5(?), updated_by = ? 
+            WHERE id = ?
+        `,
             [firstName, lastName, username, password, updatedBy, id]
         )
         if (result.affectedRows) {
@@ -117,10 +126,10 @@ const updateUserStatus = async (req, res) => {
     try {
         const [result] = await pool.query(
             `
-        UPDATE user
-        SET Active = !Active, updated_by = ?
-        WHERE id = ?
-    `,
+            UPDATE user
+            SET Active = !Active, updated_by = ?
+            WHERE id = ?
+        `,
             [updatedBy, id]
         )
         if (result.affectedRows) {

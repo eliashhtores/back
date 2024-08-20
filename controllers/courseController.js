@@ -20,9 +20,9 @@ const getCourse = async (req, res) => {
     try {
         const [row] = await pool.query(
             `
-        SELECT * 
-        FROM course
-        WHERE id = ?
+            SELECT * 
+            FROM course
+            WHERE id = ?
         `,
             [id]
         )
@@ -97,10 +97,10 @@ const updateCourse = async (req, res) => {
     try {
         const [result] = await pool.query(
             `
-        UPDATE course
-        SET name = ?, length = ?, price = ?, language = ?, available_at = ?, mark = ?, presenter = ?, presented_by = ?, attendance = ?, sessions = ?, updated_by = ?
-        WHERE id = ?
-    `,
+            UPDATE course
+            SET name = ?, length = ?, price = ?, language = ?, available_at = ?, mark = ?, presenter = ?, presented_by = ?, attendance = ?, sessions = ?, updated_by = ?
+            WHERE id = ?
+        `,
             [
                 name,
                 length,
@@ -133,10 +133,10 @@ const updateCourseStatus = async (req, res) => {
     try {
         const [result] = await pool.query(
             `
-        UPDATE course
-        SET Active = !Active, updated_by = ?
-        WHERE id = ?
-    `,
+            UPDATE course
+            SET Active = !Active, updated_by = ?
+            WHERE id = ?
+        `,
             [updatedBy, id]
         )
         if (result.affectedRows) {

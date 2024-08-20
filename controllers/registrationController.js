@@ -20,9 +20,9 @@ const getRegistration = async (req, res) => {
     try {
         const [row] = await pool.query(
             `
-        SELECT * 
-        FROM registration 
-        WHERE id = ?
+            SELECT * 
+            FROM registration 
+            WHERE id = ?
         `,
             [id]
         )
@@ -30,7 +30,30 @@ const getRegistration = async (req, res) => {
             res.status(200).send(row[0])
             return
         }
-        res.status(404).send({ error: "Registration not found" })
+        res.status(404).send({ status: 400, error: "Registration not found" })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+        console.error(error.stack)
+    }
+}
+
+const getRegistrationByUser = async (req, res) => {
+    const { id } = req.params
+    try {
+        const [row] = await pool.query(
+            `
+            SELECT name, COALESCE(time_spent, '') AS time_spent, IF(r.active=1, "Sí", "No") AS active, r.created_at AS created_at
+            FROM registration r
+            JOIN course c ON c.id = r.course_id
+            WHERE user_id = ?
+        `,
+            [id]
+        )
+        if (row) {
+            res.status(200).send(row)
+            return
+        }
+        res.status(404).send({ status: 400, error: "Registration not found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.stack)
@@ -50,7 +73,7 @@ const createRegistration = async (req, res) => {
             [userID, courseID]
         )
         if (row[0]) {
-            res.status(409).send({ error: "User already enrolled in this course" })
+            res.status(409).send({ status: 409, error: "User already enrolled in this course" })
             return
         }
         const [result] = await pool.query(
@@ -73,10 +96,10 @@ const updateRegistration = async (req, res) => {
     try {
         const [result] = await pool.query(
             `
-        UPDATE registration
-        SET time_spent = ?, updated_by = ?
-        WHERE id = ?
-    `,
+            UPDATE registration
+            SET time_spent = ?, updated_by = ?
+            WHERE id = ?
+        `,
             [timeSpent, updatedBy, id]
         )
         if (result.affectedRows) {
@@ -96,10 +119,10 @@ const updateRegistrationStatus = async (req, res) => {
     try {
         const [result] = await pool.query(
             `
-        UPDATE registration
-        SET Active = !Active, updated_by = ?
-        WHERE id = ?
-    `,
+            UPDATE registration
+            SET Active = !Active, updated_by = ?
+            WHERE id = ?
+        `,
             [updatedBy, id]
         )
         if (result.affectedRows) {
@@ -119,4 +142,5 @@ export default {
     createRegistration,
     updateRegistration,
     updateRegistrationStatus,
+    getRegistrationByUser,
 }
