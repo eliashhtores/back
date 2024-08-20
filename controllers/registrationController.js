@@ -3,11 +3,12 @@ import pool from "../database/db.js"
 const getRegistrations = async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT * FROM registration")
-        if (rows.length) {
-            res.status(200).send(rows)
-            return
+        const response = {
+            data: rows,
+            recordsTotal: rows.length,
+            recordsFiltered: rows.length,
         }
-        res.status(404).send({ error: "No registrations found" })
+        res.status(200).send(response)
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.message)
@@ -59,7 +60,7 @@ const createRegistration = async (req, res) => {
         `,
             [userID, courseID, createdBy]
         )
-        res.status(201).send(result)
+        res.status(201).send({ status: 201, result })
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.stack)

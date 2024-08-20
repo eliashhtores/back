@@ -2,15 +2,16 @@ import pool from "../database/db.js"
 
 const getCourses = async (req, res) => {
     try {
-        const [rows] = await pool.query("SELECT * FROM course")
-        if (rows.length) {
-            res.status(200).send(rows)
-            return
+        const [rows] = await pool.query("SELECT * FROM course ORDER BY name")
+        const response = {
+            data: rows,
+            recordsTotal: rows.length,
+            recordsFiltered: rows.length,
         }
-        res.status(404).send({ error: "No courses found" })
+        res.status(200).send(response)
     } catch (error) {
         res.status(500).json({ message: error.message })
-        console.error(error.stack)
+        console.error(error.message)
     }
 }
 
@@ -26,10 +27,10 @@ const getCourse = async (req, res) => {
             [id]
         )
         if (row[0]) {
-            res.status(200).send(row[0])
+            res.status(200).send({ status: 200, course: row[0] })
             return
         }
-        res.status(404).send({ error: "Course not found" })
+        res.status(404).send({ status: 400, error: "Course not found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.stack)
@@ -60,7 +61,7 @@ const createCourse = async (req, res) => {
             [name]
         )
         if (row[0]) {
-            res.status(409).send({ error: "Course already exists" })
+            res.status(409).send({ status: 409, error: "Course already exists" })
             return
         }
 
@@ -71,7 +72,7 @@ const createCourse = async (req, res) => {
         `,
             [name, length, price, language, availableAt, mark, presenter, presentedBy, attendance, sessions, createdBy]
         )
-        res.status(201).send(result)
+        res.status(201).send({ status: 201, result })
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.stack)
@@ -116,10 +117,10 @@ const updateCourse = async (req, res) => {
             ]
         )
         if (result.affectedRows) {
-            res.status(200).send({ message: "Course updated successfully" })
+            res.status(200).send({ status: 200, message: "Course updated successfully" })
             return
         }
-        res.status(404).send({ error: "Course not found" })
+        res.status(404).send({ status: 400, error: "Course not found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.stack)
@@ -139,10 +140,10 @@ const updateCourseStatus = async (req, res) => {
             [updatedBy, id]
         )
         if (result.affectedRows) {
-            res.status(200).send({ message: "Course status updated successfully" })
+            res.status(200).send({ status: 200, message: "Course status updated successfully" })
             return
         }
-        res.status(404).send({ error: "Course not found" })
+        res.status(404).send({ status: 404, error: "Course not found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.stack)

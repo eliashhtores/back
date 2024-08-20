@@ -12,14 +12,37 @@ const getSessionsByCourse = async (req, res) => {
         `,
             [id]
         )
-        if (rows.length) {
-            res.status(200).send(rows)
-            return
+        const response = {
+            data: rows,
+            recordsTotal: rows.length,
+            recordsFiltered: rows.length,
         }
-        res.status(404).send({ error: "No sessions found" })
+        res.status(200).send(response)
     } catch (error) {
         res.status(500).json({ message: error.message })
-        console.error(error.stack)
+        console.error(error.message)
+    }
+}
+
+const getSessions = async (req, res) => {
+    try {
+        const [rows] = await pool.query(
+            `
+        SELECT cs.id AS id, name, number, url, cs.active AS active, cs.created_at AS created_at 
+        FROM course_session cs
+        JOIN course c ON c.id = cs.course_id
+        ORDER BY name, number;
+        `
+        )
+        const response = {
+            data: rows,
+            recordsTotal: rows.length,
+            recordsFiltered: rows.length,
+        }
+        res.status(200).send(response)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+        console.error(error.message)
     }
 }
 
@@ -35,10 +58,10 @@ const getSession = async (req, res) => {
             [id]
         )
         if (row[0]) {
-            res.status(200).send(row[0])
+            res.status(200).send({ status: 200, session: row[0] })
             return
         }
-        res.status(404).send({ error: "Session not found" })
+        res.status(404).send({ status: 404, error: "Session not found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.stack)
@@ -70,7 +93,7 @@ const createSession = async (req, res) => {
         `,
             [courseID, number, url, createdBy]
         )
-        res.status(201).send(result)
+        res.status(201).send({ status: 201, result })
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.stack)
@@ -79,21 +102,21 @@ const createSession = async (req, res) => {
 
 const updateSession = async (req, res) => {
     const { id } = req.params
-    const { url, updatedBy } = req.body
+    const { courseID, url, updatedBy } = req.body
     try {
         const [result] = await pool.query(
             `
         UPDATE course_session
-        SET url = ?, updated_by = ?
+        SET course_id = ?, url = ?, updated_by = ?
         WHERE id = ?
     `,
-            [url, updatedBy, id]
+            [courseID, url, updatedBy, id]
         )
         if (result.affectedRows) {
-            res.status(200).send({ message: "Session updated successfully" })
+            res.status(200).send({ status: 200, message: "Session updated successfully" })
             return
         }
-        res.status(404).send({ error: "Session not found" })
+        res.status(404).send({ status: 404, error: "Session not found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.stack)
@@ -113,10 +136,10 @@ const updateSessionStatus = async (req, res) => {
             [updatedBy, id]
         )
         if (result.affectedRows) {
-            res.status(200).send({ message: "Session status updated successfully" })
+            res.status(200).send({ status: 200, message: "Session status updated successfully" })
             return
         }
-        res.status(404).send({ error: "Session not found" })
+        res.status(404).send({ status: 404, error: "Session not found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.stack)
@@ -126,6 +149,7 @@ const updateSessionStatus = async (req, res) => {
 export default {
     getSessionsByCourse,
     getSession,
+    getSessions,
     createSession,
     updateSession,
     updateSessionStatus,
