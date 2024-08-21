@@ -15,7 +15,7 @@ app.use(express.json())
 app.use(bodyParser.json())
 app.use(cors())
 
-const stripe = new Stripe("sk_test_IKYCHOAmUhC7IPTdaoVtO58D")
+const stripe = new Stripe(process.env.STRIPE_KEY)
 const calculateOrderAmount = (items) => {
     let total = 0
     items.forEach((item) => {
