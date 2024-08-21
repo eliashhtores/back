@@ -6,7 +6,7 @@ import userRoutes from "./routes/user.js"
 import courseRoutes from "./routes/course.js"
 import sessionRoutes from "./routes/session.js"
 import registrationRoutes from "./routes/registration.js"
-import Stripe from "stripe"
+import paymentRoutes from "./routes/payment.js"
 dotenv.config()
 
 const app = express()
@@ -15,35 +15,11 @@ app.use(express.json())
 app.use(bodyParser.json())
 app.use(cors())
 
-const stripe = new Stripe(process.env.STRIPE_KEY)
-const calculateOrderAmount = (items) => {
-    let total = 0
-    items.forEach((item) => {
-        total += item.amount
-    })
-    return total
-}
-
-app.post("/create-payment-intent", async (req, res) => {
-    const { items } = req.body
-
-    const paymentIntent = await stripe.paymentIntents.create({
-        amount: calculateOrderAmount(items),
-        currency: "mxn",
-        automatic_payment_methods: {
-            enabled: true,
-        },
-    })
-
-    res.send({
-        clientSecret: paymentIntent.client_secret,
-    })
-})
-
 app.use("/user", userRoutes)
 app.use("/course", courseRoutes)
 app.use("/session", sessionRoutes)
 app.use("/registration", registrationRoutes)
+app.use("/payment", paymentRoutes)
 
 app.use((err, req, res, next) => {
     console.error(err.stack)
