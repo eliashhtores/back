@@ -5,7 +5,7 @@ const router = express.Router()
 
 router.get("/", registrationController.getRegistrations)
 router.get("/:id", registrationController.getRegistration)
-router.get("/user/:id", registrationController.getRegistrationByUser)
+router.get("/user/:userID", registrationController.getRegistrationByUser)
 router.post("/", registrationController.createRegistration)
 router.patch("/:id", registrationController.updateRegistration)
 router.patch("/status/:id", registrationController.updateRegistrationStatus)

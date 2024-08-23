@@ -10,7 +10,7 @@ const getRegistrations = async (req, res) => {
         }
         res.status(200).send(response)
     } catch (error) {
-        res.status(500).json({ message: error.message })
+        res.status(500).json({ status: 500, message: error.message })
         console.error(error.message)
     }
 }
@@ -38,16 +38,17 @@ const getRegistration = async (req, res) => {
 }
 
 const getRegistrationByUser = async (req, res) => {
-    const { id } = req.params
+    const { userID } = req.params
     try {
         const [row] = await pool.query(
             `
-            SELECT name, COALESCE(time_spent, '') AS time_spent, IF(r.active=1, "Sí", "No") AS active, r.created_at AS created_at
+            SELECT r.id AS id, name, COALESCE(time_spent, '') AS time_spent, IF(r.active=1, "Sí", "No") AS active, r.created_at AS created_at
             FROM registration r
             JOIN course c ON c.id = r.course_id
             WHERE user_id = ?
+            ORDER BY id DESC
         `,
-            [id]
+            [userID]
         )
         if (row) {
             res.status(200).send(row)
@@ -69,6 +70,7 @@ const createRegistration = async (req, res) => {
             FROM registration
             WHERE user_id = ?
                 AND course_id = ?
+                AND active
         `,
             [userID, courseID]
         )
@@ -103,10 +105,10 @@ const updateRegistration = async (req, res) => {
             [timeSpent, updatedBy, id]
         )
         if (result.affectedRows) {
-            res.status(200).send({ message: "Registration updated successfully" })
+            res.status(200).send({ status: 200, message: "Registration updated successfully" })
             return
         }
-        res.status(404).send({ error: "Registration not found" })
+        res.status(404).send({ status: 400, error: "Registration not found" })
     } catch (error) {
         res.status(500).json({ message: error.message })
         console.error(error.stack)
@@ -120,13 +122,13 @@ const updateRegistrationStatus = async (req, res) => {
         const [result] = await pool.query(
             `
             UPDATE registration
-            SET Active = !Active, updated_by = ?
+            SET active = !active, updated_by = ?
             WHERE id = ?
         `,
             [updatedBy, id]
         )
         if (result.affectedRows) {
-            res.status(200).send({ message: "Registration status updated successfully" })
+            res.status(200).send({ status: 200, message: "Registration status updated successfully" })
             return
         }
         res.status(404).send({ error: "Registration not found" })

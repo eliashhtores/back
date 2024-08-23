@@ -147,7 +147,7 @@ const updateSessionStatus = async (req, res) => {
         const [result] = await pool.query(
             `
             UPDATE course_session
-            SET Active = !Active, updated_by = ?
+            SET active = !active, updated_by = ?
             WHERE id = ?
         `,
             [updatedBy, id]
